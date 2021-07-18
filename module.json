@@ -1,0 +1,31 @@
+{
+  "name": "ED4_Steps2Foundry",
+  "title": "Steps2Foundry - An Earthdawn character importer",
+  "description": "A module to import characters created with SecondStep (secondstep.dk) into the Earthdawn game system.",
+  "version": "This is auto replaced",
+  "library": "false",
+  "manifestPlusVersion": "1.0.0",
+  "authors": [
+    {
+      "name": "qrizzl",
+      "url": "https://github.com/ChristopherSD",
+      "discord": "Doc_D [he/they]#1791"
+    }
+  ],
+  "minimumCoreVersion": "0.8.8",
+  "compatibleCoreVersion": "0.8.8",
+  "esmodules": [
+    "/scripts/module.js"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "system": ["earthdawn4e"],
+  "url": "https://github.com/ChristopherSD/ED4_Steps2Foundry",
+  "manifest": "https://github.com/ChristopherSD/ED4_Steps2Foundry/blob/main/module.json"
+
+}
