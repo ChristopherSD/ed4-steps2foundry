@@ -15,7 +15,10 @@
   "minimumCoreVersion": "0.8.8",
   "compatibleCoreVersion": "0.8.8",
   "esmodules": [
-    "/scripts/module.js"
+    "/scripts/main.js"
+  ],
+  "scripts": [
+    "/scripts/main.js"
   ],
   "languages": [
     {
@@ -25,6 +28,11 @@
     }
   ],
   "system": ["earthdawn4e"],
+  "dependencies": [
+    {
+      "name": "lib-wrapper"
+    }
+  ],
   "url": "https://github.com/ChristopherSD/ED4_Steps2Foundry",
   "manifest": "https://github.com/ChristopherSD/ED4_Steps2Foundry/blob/main/module.json"
 
