@@ -1,4 +1,6 @@
 {
   "CONTEXT.ImportFromSecStep": "Import from 2ndStep",
-  "CONTEXT.ImportSecStep": "Import 2ndStep"
+  "CONTEXT.ImportSecStep": "Import 2ndStep",
+
+  "ERROR.InvalidSecStepFile": "The uploaded file is not a valid Second Step JSON File."
 }
