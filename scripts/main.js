@@ -1,5 +1,5 @@
 const step2ed = {
-    createImportButton() {
+    createImportButton: function() {
         // Do Hooks get called twice?
         // At least it appends the button twice, so check if already exists..
         if (!!document.getElementById("import-button-secondstep")) return;
@@ -23,99 +23,99 @@ const step2ed = {
         });
     },
 
-    _createFromJSON(sstep) {
+    _createFromJSON: async function(sstep) {
         if (!sstep.hasOwnProperty("StepsVersion")) {
             ui.notifications.error(game.i18n.localize("ERROR.InvalidSecStepFile"));
             return;
         }
 
-        let updateData = {
-            "biography": sstep.Basic.Description,
-            "race": "",
-            "height": sstep.Basic.Height,
-            "sex": sstep.Basic.Gender,
-            "weight": sstep.Basic.Weight,
-            "age": sstep.Basic.Age,
-            "hair": sstep.Basic.Hair,
-            "eyes": sstep.Basic.Eyes,
-            "skin": sstep.Basic.Skin,
-            "movement": "",
-            "attributes": {
-                "dexterityvalue": 10,
-                "strengthvalue": 10,
-                "toughnessvalue": 10,
-                "perceptionvalue": 10,
-                "willpowervalue": 10,
-                "charismavalue": 10,
-                "dexterityinitial": 0,
-                "strengthinitial": 0,
-                "toughnessinitial": 0,
-                "perceptioninitial": 0,
-                "willpowerinitial": 0,
-                "charismainitial": 0
-            },
-            "overrides":{
-                "physicaldefense": 0,
-                "mysticdefense": 0,
-                "socialdefense": 0,
-                "unconsciousrating": 0,
-                "deathrating": 0,
-                "physicalarmor": 0,
-                "mysticarmor": 0,
-                "movement": 0,
-                "recoverytestsrefresh": 0,
+        try {
+            console.log("Step2ED | Creating new Actor");
+
+            let actor = await Actor.create({
+                name: sstep.Basic.Name,
+                type: "pc",
+                image: sstep.PortraitURL
+            });
+
+            console.log("Step2ED | Creating base attributes");
+
+            // open the notes and legend tab of the character sheet to go to character creation
+            // this is necessary since secondStep Jsons only have the start values and calculate final attribute values on the fly
+            actor.sheet.render(true);
+            // TODO: sheet not rendered yet :/
+            document.querySelector('[data-tab="storyNotes"]').click();
+            document.querySelector("div.LegendTab a.show-hidden").click();
+
+            document.getElementsByName("data.dexterityadded")[0].value = parseInt(sstep.Attributes.Dex.Buildpoints);
+            document.getElementsByName("data.strengthadded")[0].value = parseInt(sstep.Attributes.Str.Buildpoints);
+            document.getElementsByName("data.toughnessadded")[0].value = parseInt(sstep.Attributes.Tou.Buildpoints);
+            document.getElementsByName("data.perceptionadded")[0].value = parseInt(sstep.Attributes.Per.Buildpoints);
+            document.getElementsByName("data.willpoweradded")[0].value = parseInt(sstep.Attributes.Wil.Buildpoints);
+            document.getElementsByName("data.charismaadded")[0].value = parseInt(sstep.Attributes.Cha.Buildpoints);
+
+            document.querySelector("button.buttonAction.finalizeBuild").click();
+
+            console.log("Step2ED | Creating Actor Update Data");
+
+            let updateData = {
+                "biography": sstep.Basic.Description,
+                "race": "",
+                "height": sstep.Basic.Height,
+                "sex": sstep.Basic.Gender,
+                "weight": sstep.Basic.Weight,
+                "age": sstep.Basic.Age,
+                "hair": sstep.Basic.Hair,
+                "eyes": sstep.Basic.Eyes,
+                "skin": sstep.Basic.Skin,
+                "movement": "",
+                "attributes": {
+                    "dexterityvalue": actor.data.data.attributes.dexterityinitial + sstep.Attributes.Dex.Increases,
+                    "strengthvalue": actor.data.data.attributes.strengthinitial + sstep.Attributes.Str.Increases,
+                    "toughnessvalue": actor.data.data.attributes.toughnessinitial + sstep.Attributes.Tou.Increases,
+                    "perceptionvalue": actor.data.data.attributes.perceptioninitial + sstep.Attributes.Per.Increases,
+                    "willpowervalue": actor.data.data.attributes.willpowerinitial + sstep.Attributes.Wil.Increases,
+                    "charismavalue": actor.data.data.attributes.charismainitial + sstep.Attributes.Cha.Increases
+                },
+                "damage": {
+                    "value": sstep.Damage
+                },
+                "wounds": sstep.Wounds,
                 "recoverytestscurrent": 0,
-                "bloodMagicDamage": 0,
-                "bloodMagicWounds":0
-            },
-            "tactics":{
-                "aggressive": false,
-                "defensive": false,
-                "knockeddown": false,
-                "harried": false
-            },
-            "damage":{
-                "value": 0,
-                "min": 0,
-                "max": 0
-            },
-            "unconscious":{
-                "min": 0
-            },
-            "wounds": "",
-            "recoverytestscurrent": 0,
-            "karma":{
-                "value": 0,
-                "min": 0
-            },
-            "karmaDie": "d6",
-            "legendpointtotal": 0,
-            "legendpointcurrent": 0,
-            "unspentattributepoints": 0,
-            "usekarma": "false",
-            "money":{
-                "gold": 0,
-                "silver": 0,
-                "copper": 0
+                "legendpointtotal": sstep.LegendPoints
             }
+
+            // go over equipment
+            for (const item of sstep.Equipment) {
+                switch (item.type) {
+                    case "Valuable":
+                        if (item.ID in ("Gold", "Silver", "Copper")) {
+                            updateData.money[item.ID.toLowerCase()] = parseInt(item.Count);
+                        }
+                }
+
+            }
+
+            // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
+
+        } catch (e) {
+            ui.notifications.error(e);
         }
-
-        Actor.create({
-            name: sstep.Basic.Name,
-            type: "pc"
-        }).then(actor => actor.update({data: updateData}), reason => game.notifications.error(reason));
-
-        // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
     },
 
-    importJSON(filepath) {
-        console.log("Loading JSON file:\t" + filepath);
-        secondStep = $.getJSON(filepath, data => this._createFromJSON(data));
+    importJSON: function(filepath) {
+        console.log("Step2ED | Loading JSON file:\t" + filepath);
+        $.getJSON(filepath, data => this._createFromJSON(data));
+    },
+
+    _removeEditionPrefix: function(string) {
+        return string.remove('ED4',  '');
     }
 }
 
 class JSONPicker extends FilePicker {
     constructor(options = {}) {
+        console.log("Step2ED | Create JSONPicker");
         super(options);
         this.extensions = ['.json', '.JSON']
     }
@@ -136,14 +136,17 @@ Hooks.on("init", function () {
 })
 
 Hooks.on("ready", function () {
+    console.log("Step2ED | In Hook: ready");
     step2ed.createImportButton()
 })
 
 Hooks.on("changeSidebarTab", function () {
+    console.log("Step2ED | In Hook: changeSidebarTab");
     step2ed.createImportButton()
 })
 
 Hooks.on("renderSidebarTab", function () {
+    console.log("Step2ED | In Hook: renderSidebarTab");
     step2ed.createImportButton()
 })
 
