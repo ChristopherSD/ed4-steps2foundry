@@ -1,4 +1,12 @@
 const step2ed = {
+
+    compThreadItems: "earthdawn-pg-compendium.goods",
+    compSpells: "earthdawn-pg-compendium.spells",
+    compDiscipline: "earthdawn-pg-compendium.disciplin",
+    compNamegiver: "earthdawn-pg-compendium.namegiver",
+    compSkills: "earthdawn-pg-compendium.skill-description",
+    compTalents: "earthdawn-pg-compendium.talent-description",
+
     createImportButton: function() {
         // Do Hooks get called twice?
         // At least it appends the button twice, so check if already exists..
@@ -23,6 +31,11 @@ const step2ed = {
         });
     },
 
+    _addNamegiverRace: async function(actor, namegiver) {
+        const namegiverItem = await this._getCompendiumItem(this.compNamegiver, namegiver);
+        await actor.createEmbeddedDocuments("Item", [namegiverItem]);
+    },
+
     _createFromJSON: async function(sstep) {
         if (!sstep.hasOwnProperty("StepsVersion")) {
             ui.notifications.error(game.i18n.localize("ERROR.InvalidSecStepFile"));
@@ -37,6 +50,14 @@ const step2ed = {
                 type: "pc",
                 image: sstep.PortraitURL
             });
+
+            // get basic constants
+            const edition = sstep.Options.Edition;
+            const race = sstep.Race;
+
+            // add namegiver race
+            await this._addNamegiverRace(actor, this._removeEditionPrefix(race, edition));
+
 
             console.log("Step2ED | Creating base attributes");
 
@@ -103,14 +124,21 @@ const step2ed = {
         }
     },
 
+    _getCompendiumItem: async function(compendiumName, itemName) {
+        const pack = game.packs.get(compendiumName);
+        const itemID = pack.index.getName(itemName)._id;
+        const item = await pack.getDocument(itemID);
+        return game.items.fromCompendium(item);
+    },
+
+    _removeEditionPrefix: function(string, edition) {
+        return string.replace(edition,  '');
+    },
+
     importJSON: function(filepath) {
         console.log("Step2ED | Loading JSON file:\t" + filepath);
         $.getJSON(filepath, data => this._createFromJSON(data));
     },
-
-    _removeEditionPrefix: function(string) {
-        return string.remove('ED4',  '');
-    }
 }
 
 class JSONPicker extends FilePicker {
