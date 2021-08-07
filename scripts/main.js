@@ -7,6 +7,29 @@ const step2ed = {
     compSkills: "earthdawn-pg-compendium.skill-description",
     compTalents: "earthdawn-pg-compendium.talent-description",
 
+    pointcost: {
+        "-2": -2,
+        "-1": -1,
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "5": 4,
+        "7": 5,
+        "9": 6,
+        "12": 7,
+        "15": 8
+    },
+
+    attributeAbbreviations: {
+        "Dex": "dexterity",
+        "Str": "strength",
+        "Tou": "toughness",
+        "Per": "perception",
+        "Wil": "willpower",
+        "Cha": "charisma"
+    },
+
     createImportButton: function() {
         // Do Hooks get called twice?
         // At least it appends the button twice, so check if already exists..
@@ -36,6 +59,48 @@ const step2ed = {
         await actor.createEmbeddedDocuments("Item", [namegiverItem]);
     },
 
+    _createBaseAttributes: async function (actor, attributes) {
+        // open the notes and legend tab of the character sheet to go to character creation
+        // this is necessary since secondStep Jsons only have the starting point costs and calculate final attribute values on the fly
+        await actor.sheet._render(true); // inner render method since the promise is not propagated outwards
+
+        document.querySelector('[data-tab="storyNotes"]').click();
+        document.querySelector("div.LegendTab a.show-hidden").click();
+
+        for (const att in attributes) {
+            if (!attributes.hasOwnProperty(att)) continue;
+
+            const pointsCost = attributes[att].Buildpoints;
+            const points = this.pointcost[pointsCost];
+
+            let attribute = this.attributeAbbreviations[att];
+            if (points === 0) {
+                document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="plus"]`).click();
+                document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="minus"]`).click();
+            }
+            else {
+                let direction = points > 0 ? "plus" : "minus";
+                let button = document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="${direction}"]`);
+
+                for (let i = 0; i < points; i++) {
+                    button.click();
+                }
+            }
+        }
+
+        /*
+        document.getElementsByName("data.dexterityadded")[0].value = parseInt(sstep.Attributes.Dex.Buildpoints);
+        document.getElementsByName("data.strengthadded")[0].value = parseInt(sstep.Attributes.Str.Buildpoints);
+        document.getElementsByName("data.toughnessadded")[0].value = parseInt(sstep.Attributes.Tou.Buildpoints);
+        document.getElementsByName("data.perceptionadded")[0].value = parseInt(sstep.Attributes.Per.Buildpoints);
+        document.getElementsByName("data.willpoweradded")[0].value = parseInt(sstep.Attributes.Wil.Buildpoints);
+        document.getElementsByName("data.charismaadded")[0].value = parseInt(sstep.Attributes.Cha.Buildpoints);
+        */
+
+        document.querySelector("button.buttonAction.finalizeBuild").click();
+        // TODO: the finalize Build button does not work????
+    },
+
     _createFromJSON: async function(sstep) {
         if (!sstep.hasOwnProperty("StepsVersion")) {
             ui.notifications.error(game.i18n.localize("ERROR.InvalidSecStepFile"));
@@ -58,30 +123,10 @@ const step2ed = {
             // add namegiver race
             await this._addNamegiverRace(actor, this._removeEditionPrefix(race, edition));
 
-
-            console.log("Step2ED | Creating base attributes");
-
-            // open the notes and legend tab of the character sheet to go to character creation
-            // this is necessary since secondStep Jsons only have the start values and calculate final attribute values on the fly
-            actor.sheet.render(true);
-            // TODO: sheet not rendered yet :/
-            document.querySelector('[data-tab="storyNotes"]').click();
-            document.querySelector("div.LegendTab a.show-hidden").click();
-
-            document.getElementsByName("data.dexterityadded")[0].value = parseInt(sstep.Attributes.Dex.Buildpoints);
-            document.getElementsByName("data.strengthadded")[0].value = parseInt(sstep.Attributes.Str.Buildpoints);
-            document.getElementsByName("data.toughnessadded")[0].value = parseInt(sstep.Attributes.Tou.Buildpoints);
-            document.getElementsByName("data.perceptionadded")[0].value = parseInt(sstep.Attributes.Per.Buildpoints);
-            document.getElementsByName("data.willpoweradded")[0].value = parseInt(sstep.Attributes.Wil.Buildpoints);
-            document.getElementsByName("data.charismaadded")[0].value = parseInt(sstep.Attributes.Cha.Buildpoints);
-
-            document.querySelector("button.buttonAction.finalizeBuild").click();
-
             console.log("Step2ED | Creating Actor Update Data");
 
             let updateData = {
                 "biography": sstep.Basic.Description,
-                "race": "",
                 "height": sstep.Basic.Height,
                 "sex": sstep.Basic.Gender,
                 "weight": sstep.Basic.Weight,
@@ -89,28 +134,31 @@ const step2ed = {
                 "hair": sstep.Basic.Hair,
                 "eyes": sstep.Basic.Eyes,
                 "skin": sstep.Basic.Skin,
-                "movement": "",
-                "attributes": {
+                /*"attributes": {
                     "dexterityvalue": actor.data.data.attributes.dexterityinitial + sstep.Attributes.Dex.Increases,
                     "strengthvalue": actor.data.data.attributes.strengthinitial + sstep.Attributes.Str.Increases,
                     "toughnessvalue": actor.data.data.attributes.toughnessinitial + sstep.Attributes.Tou.Increases,
                     "perceptionvalue": actor.data.data.attributes.perceptioninitial + sstep.Attributes.Per.Increases,
                     "willpowervalue": actor.data.data.attributes.willpowerinitial + sstep.Attributes.Wil.Increases,
                     "charismavalue": actor.data.data.attributes.charismainitial + sstep.Attributes.Cha.Increases
-                },
+                },*/
                 "damage": {
                     "value": sstep.Damage
                 },
+                "money":{
+                    "gold": 0,
+                    "silver": 0,
+                    "copper": 0
+                },
                 "wounds": sstep.Wounds,
-                "recoverytestscurrent": 0,
                 "legendpointtotal": sstep.LegendPoints
             }
 
             // go over equipment
             for (const item of sstep.Equipment) {
-                switch (item.type) {
+                switch (item.Type) {
                     case "Valuable":
-                        if (item.ID in ("Gold", "Silver", "Copper")) {
+                        if (["Gold", "Silver", "Copper"].indexOf(item.ID) > -1) {
                             updateData.money[item.ID.toLowerCase()] = parseInt(item.Count);
                         }
                 }
@@ -119,6 +167,13 @@ const step2ed = {
 
             // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
 
+            await actor.update({data: updateData});
+
+            console.log("Step2ED | Creating base attributes");
+
+            await this._createBaseAttributes(actor,sstep.Attributes);
+            await actor.sheet.close();
+            await actor.sheet._render(true);
         } catch (e) {
             ui.notifications.error(e);
         }
