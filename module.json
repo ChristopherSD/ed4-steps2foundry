@@ -31,6 +31,9 @@
   "dependencies": [
     {
       "name": "lib-wrapper"
+    },
+    {
+      "name": "earthdawn-pg-compendium"
     }
   ],
   "url": "https://github.com/ChristopherSD/ED4_Steps2Foundry",
