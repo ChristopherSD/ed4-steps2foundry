@@ -190,17 +190,32 @@ class Step2Ed {
     }
 
     async _getCompendiumItem(compendiumName, itemName) {
-        const pack = game.packs.get(compendiumName);
-        const itemID = pack.index.getName(itemName)._id;
-        const item = await pack.getDocument(itemID);
-        return game.items.fromCompendium(item);
+        try {
+            const pack = game.packs.get(compendiumName);
+            const itemID = pack.index.getName(itemName)._id;
+            const item = await pack.getDocument(itemID);
+            return game.items.fromCompendium(item);
+        } catch (e) {
+            console.log(`Step2ED | Could not retrieve item "${itemName}" from compendium "${compendiumName}"`)
+            return {};
+        }
     }
 
     async _getTalentItems() {
         let talents = []
         for (const talentEntry of this.sstep.Talents) {
-            this._getCompendiumItem(this.compTalents, this._getTalentName(talentEntry.ID))
+            // get item as object from compendium
+            let compItem = await this._getCompendiumItem(this.compTalents, this._getTalentName(talentEntry.ID));
 
+            // check if compItem is empty for error handling
+            if (!$.isEmptyObject(compItem)) {
+                // set talent data
+                compItem.data.ranks = talentEntry.Rank;
+                compItem.data.source = talentEntry.Type === "Optional" ? "Option" : talentEntry.Type;
+
+                // put it in the talents that are returned
+                talents.push(compItem);
+            }
         }
         return talents;
     }
