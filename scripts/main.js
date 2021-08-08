@@ -1,72 +1,81 @@
-const step2ed = {
+class Step2Ed {
 
-    compThreadItems: "earthdawn-pg-compendium.goods",
-    compSpells: "earthdawn-pg-compendium.spells",
-    compDiscipline: "earthdawn-pg-compendium.disciplin",
-    compNamegiver: "earthdawn-pg-compendium.namegiver",
-    compSkills: "earthdawn-pg-compendium.skill-description",
-    compTalents: "earthdawn-pg-compendium.talent-description",
+    constructor(filepath) {
+        this.compThreadItems = "earthdawn-pg-compendium.goods";
+        this.compSpells = "earthdawn-pg-compendium.spells";
+        this.compDiscipline = "earthdawn-pg-compendium.disciplin";
+        this.compNamegiver = "earthdawn-pg-compendium.namegiver";
+        this.compSkills = "earthdawn-pg-compendium.skill-description";
+        this.compTalents = "earthdawn-pg-compendium.talent-description";
+        this.pointcost = {
+            "-2": -2,
+            "-1": -1,
+            "0": 0,
+            "1": 1,
+            "2": 2,
+            "3": 3,
+            "5": 4,
+            "7": 5,
+            "9": 6,
+            "12": 7,
+            "15": 8
+        };
+        this.attributeAbbreviations = {
+            "Dex": "dexterity",
+            "Str": "strength",
+            "Tou": "toughness",
+            "Per": "perception",
+            "Wil": "willpower",
+            "Cha": "charisma"
+        };
 
-    pointcost: {
-        "-2": -2,
-        "-1": -1,
-        "0": 0,
-        "1": 1,
-        "2": 2,
-        "3": 3,
-        "5": 4,
-        "7": 5,
-        "9": 6,
-        "12": 7,
-        "15": 8
-    },
+        this.filepath = filepath;
 
-    attributeAbbreviations: {
-        "Dex": "dexterity",
-        "Str": "strength",
-        "Tou": "toughness",
-        "Per": "perception",
-        "Wil": "willpower",
-        "Cha": "charisma"
-    },
+    }
 
-    createImportButton: function() {
-        // Do Hooks get called twice?
-        // At least it appends the button twice, so check if already exists..
-        if (!!document.getElementById("import-button-secondstep")) return;
+    async importJSON() {
+        console.debug("Step2ED | Loading JSON file:\t" + this.filepath);
+        await $.getJSON(this.filepath, data => this.sstep = data);
+        await this._import();
+    }
 
-        console.log("Step2ED | Adding Import Button");
+    async _addDisciplines() {
 
-        // find the create-entity buttons and insert our import button after them
-        let createButtons =  $("section#actors div.header-actions.action-buttons.flexrow");
+        // get first discipline
+        let disciplineEntry = null;
+        let disciplines = [];
+        for (const discipline of this.sstep.Disciplines) {
+            disciplineEntry = discipline;
+            let disciplineItem = await this._getCompendiumItem(
+                this.compDiscipline,
+                this._removeEditionPrefix(disciplineEntry.ID)
+            );
+            disciplineItem.data.circle = disciplineEntry.Circle;
+            disciplines.push(disciplineItem);
+        }
 
-        const importButton = $(
-            `<div class="header-import action-buttons flexrow"><button type="button" id="import-button-secondstep"><i class="fas fa-download "></i>${game.i18n.localize("CONTEXT.ImportSecStep")}</button></div>`
-        );
+        if (disciplines.length < 1) {
+            ui.notifications.warn(game.i18n.localize("WARNING.NoFirstDiscipline"));
+            return;
+        }
 
-        createButtons[0].insertAdjacentHTML('afterend', importButton[0].outerHTML);
+        await this.actor.createEmbeddedDocuments("Item", disciplines);
+    }
 
-        // create a file picker and bind it to the new button
-        document.getElementById("import-button-secondstep").addEventListener("click", function() {
-            new JSONPicker({
-                callback: file => step2ed.importJSON(file)
-            }).browse();
-        });
-    },
+    async _addNamegiverRace() {
+        const namegiverItem = await this._getCompendiumItem(this.compNamegiver, this.race);
+        await this.actor.createEmbeddedDocuments("Item", [namegiverItem]);
+    }
 
-    _addNamegiverRace: async function(actor, namegiver) {
-        const namegiverItem = await this._getCompendiumItem(this.compNamegiver, namegiver);
-        await actor.createEmbeddedDocuments("Item", [namegiverItem]);
-    },
-
-    _createBaseAttributes: async function (actor, attributes) {
+    async _createBaseAttributes() {
         // open the notes and legend tab of the character sheet to go to character creation
         // this is necessary since secondStep Jsons only have the starting point costs and calculate final attribute values on the fly
-        await actor.sheet._render(true); // inner render method since the promise is not propagated outwards
+        await this.actor.sheet._render(true); // inner render method since the promise is not propagated outwards
 
         document.querySelector('[data-tab="storyNotes"]').click();
         document.querySelector("div.LegendTab a.show-hidden").click();
 
+        const attributes = this.sstep.Attributes;
         for (const att in attributes) {
             if (!attributes.hasOwnProperty(att)) continue;
 
@@ -88,74 +97,67 @@ const step2ed = {
             }
         }
 
-        /*
-        document.getElementsByName("data.dexterityadded")[0].value = parseInt(sstep.Attributes.Dex.Buildpoints);
-        document.getElementsByName("data.strengthadded")[0].value = parseInt(sstep.Attributes.Str.Buildpoints);
-        document.getElementsByName("data.toughnessadded")[0].value = parseInt(sstep.Attributes.Tou.Buildpoints);
-        document.getElementsByName("data.perceptionadded")[0].value = parseInt(sstep.Attributes.Per.Buildpoints);
-        document.getElementsByName("data.willpoweradded")[0].value = parseInt(sstep.Attributes.Wil.Buildpoints);
-        document.getElementsByName("data.charismaadded")[0].value = parseInt(sstep.Attributes.Cha.Buildpoints);
-        */
-
         document.querySelector("button.buttonAction.finalizeBuild").click();
-        // TODO: the finalize Build button does not work????
-    },
+        // the finalize Build button only works when no action afterwards except re-rendering the sheet?
+    }
 
-    _createFromJSON: async function(sstep) {
-        if (!sstep.hasOwnProperty("StepsVersion")) {
+    async _import() {
+        if (!this.sstep.hasOwnProperty("StepsVersion")) {
             ui.notifications.error(game.i18n.localize("ERROR.InvalidSecStepFile"));
             return;
         }
 
         try {
-            console.log("Step2ED | Creating new Actor");
+            console.debug("Step2ED | Creating new Actor");
 
-            let actor = await Actor.create({
-                name: sstep.Basic.Name,
+            this.actor = await Actor.create({
+                name: this.sstep.Basic.Name,
                 type: "pc",
-                image: sstep.PortraitURL
+                image: this.sstep.PortraitURL
             });
 
             // get basic constants
-            const edition = sstep.Options.Edition;
-            const race = sstep.Race;
+            this.edition = this.sstep.Options.Edition;
+            this.race = this._removeEditionPrefix(this.sstep.Race);
 
-            // add namegiver race
-            await this._addNamegiverRace(actor, this._removeEditionPrefix(race, edition));
+            console.debug("Step2ED | Adding Namegiver Race");
+            await this._addNamegiverRace();
 
-            console.log("Step2ED | Creating Actor Update Data");
+            console.debug("Step2ED | Adding First Discipline");
+            await this._addDisciplines();
+
+            console.debug("Step2ED | Creating Actor Update Data");
 
             let updateData = {
-                "biography": sstep.Basic.Description,
-                "height": sstep.Basic.Height,
-                "sex": sstep.Basic.Gender,
-                "weight": sstep.Basic.Weight,
-                "age": sstep.Basic.Age,
-                "hair": sstep.Basic.Hair,
-                "eyes": sstep.Basic.Eyes,
-                "skin": sstep.Basic.Skin,
+                "biography": this.sstep.Basic.Description,
+                "height": this.sstep.Basic.Height,
+                "sex": this.sstep.Basic.Gender,
+                "weight": this.sstep.Basic.Weight,
+                "age": this.sstep.Basic.Age,
+                "hair": this.sstep.Basic.Hair,
+                "eyes": this.sstep.Basic.Eyes,
+                "skin": this.sstep.Basic.Skin,
                 /*"attributes": {
-                    "dexterityvalue": actor.data.data.attributes.dexterityinitial + sstep.Attributes.Dex.Increases,
-                    "strengthvalue": actor.data.data.attributes.strengthinitial + sstep.Attributes.Str.Increases,
-                    "toughnessvalue": actor.data.data.attributes.toughnessinitial + sstep.Attributes.Tou.Increases,
-                    "perceptionvalue": actor.data.data.attributes.perceptioninitial + sstep.Attributes.Per.Increases,
-                    "willpowervalue": actor.data.data.attributes.willpowerinitial + sstep.Attributes.Wil.Increases,
-                    "charismavalue": actor.data.data.attributes.charismainitial + sstep.Attributes.Cha.Increases
+                    "dexterityvalue": actor.data.data.attributes.dexterityinitial + this.sstep.Attributes.Dex.Increases,
+                    "strengthvalue": actor.data.data.attributes.strengthinitial + this.sstep.Attributes.Str.Increases,
+                    "toughnessvalue": actor.data.data.attributes.toughnessinitial + this.sstep.Attributes.Tou.Increases,
+                    "perceptionvalue": actor.data.data.attributes.perceptioninitial + this.sstep.Attributes.Per.Increases,
+                    "willpowervalue": actor.data.data.attributes.willpowerinitial + this.sstep.Attributes.Wil.Increases,
+                    "charismavalue": actor.data.data.attributes.charismainitial + this.sstep.Attributes.Cha.Increases
                 },*/
                 "damage": {
-                    "value": sstep.Damage
+                    "value": this.sstep.Damage
                 },
                 "money":{
                     "gold": 0,
                     "silver": 0,
                     "copper": 0
                 },
-                "wounds": sstep.Wounds,
-                "legendpointtotal": sstep.LegendPoints
+                "wounds": this.sstep.Wounds,
+                "legendpointtotal": this.sstep.LegendPoints
             }
 
-            // go over equipment
-            for (const item of sstep.Equipment) {
+            for (const item of this.sstep.Equipment) {
                 switch (item.Type) {
                     case "Valuable":
                         if (["Gold", "Silver", "Copper"].indexOf(item.ID) > -1) {
@@ -165,43 +167,96 @@ const step2ed = {
 
             }
 
+            console.debug("Step2ED | Getting Talents")
+            const talents = await this._getTalentItems();
+
             // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
 
-            await actor.update({data: updateData});
+            console.debug("Step2ED | Adding Items to Actor")
+            await this.actor.createEmbeddedDocuments("Item", talents);
 
-            console.log("Step2ED | Creating base attributes");
+            console.debug("Step2ED | Updating Actor Data")
+            await this.actor.update({data: updateData});
 
-            await this._createBaseAttributes(actor,sstep.Attributes);
-            await actor.sheet.close();
-            await actor.sheet._render(true);
+            console.debug("Step2ED | Creating base attributes");
+
+            await this._createBaseAttributes();
+            await this.actor.sheet.close();
+            await this.actor.sheet._render(true);
         } catch (e) {
-            ui.notifications.error(e);
+            ui.notifications.error(game.i18n.localize("ERROR.UnableToImport"));
+            console.error(e);
         }
-    },
+    }
 
-    _getCompendiumItem: async function(compendiumName, itemName) {
+    async _getCompendiumItem(compendiumName, itemName) {
         const pack = game.packs.get(compendiumName);
         const itemID = pack.index.getName(itemName)._id;
         const item = await pack.getDocument(itemID);
         return game.items.fromCompendium(item);
-    },
+    }
 
-    _removeEditionPrefix: function(string, edition) {
-        return string.replace(edition,  '');
-    },
+    async _getTalentItems() {
+        let talents = []
+        for (const talentEntry of this.sstep.Talents) {
+            this._getCompendiumItem(this.compTalents, this._getTalentName(talentEntry.ID))
 
-    importJSON: function(filepath) {
-        console.log("Step2ED | Loading JSON file:\t" + filepath);
-        $.getJSON(filepath, data => this._createFromJSON(data));
-    },
+        }
+        return talents;
+    }
+
+    _getTalentName(sstepID) {
+        let name = this._removeEditionPrefix(sstepID)
+            .replace(/([A-Z])/g, ' $1')
+            .trim();
+
+        if (name.indexOf("Thread Weaving ") > -1) {
+            const threadWeav = "Thread Weaving ";
+            name = threadWeav + "(" + name.substring(threadWeav.length) + ")";
+        }
+
+        console.debug(name);
+        return name;
+    }
+
+    _removeEditionPrefix(string) {
+        return string.replace(this.edition,  '');
+    }
 }
 
 class JSONPicker extends FilePicker {
     constructor(options = {}) {
-        console.log("Step2ED | Create JSONPicker");
+        console.debug("Step2ED | Create JSONPicker");
         super(options);
         this.extensions = ['.json', '.JSON']
     }
+}
+
+function createImportButton() {
+    // Do Hooks get called twice?
+    // At least it appends the button twice, so check if already exists..
+    if (!!document.getElementById("import-button-secondstep")) return;
+
+    console.debug("Step2ED | Adding Import Button");
+
+    // find the create-entity buttons and insert our import button after them
+    let createButtons =  $("section#actors div.header-actions.action-buttons.flexrow");
+
+    const importButton = $(
+        `<div class="header-import action-buttons flexrow"><button type="button" id="import-button-secondstep"><i class="fas fa-download "></i>${game.i18n.localize("CONTEXT.ImportSecStep")}</button></div>`
+    );
+
+    createButtons[0].insertAdjacentHTML('afterend', importButton[0].outerHTML);
+
+    // create a file picker and bind it to the new button
+    document.getElementById("import-button-secondstep").addEventListener("click", function() {
+        new JSONPicker({
+            callback: file => {
+                let importer = new Step2Ed(file);
+                importer.importJSON();
+            }
+        }).browse();
+    });
 }
 
 Hooks.on("init", function () {
@@ -219,18 +274,18 @@ Hooks.on("init", function () {
 })
 
 Hooks.on("ready", function () {
-    console.log("Step2ED | In Hook: ready");
-    step2ed.createImportButton()
+    console.debug("Step2ED | In Hook: ready");
+    createImportButton()
 })
 
 Hooks.on("changeSidebarTab", function () {
-    console.log("Step2ED | In Hook: changeSidebarTab");
-    step2ed.createImportButton()
+    console.debug("Step2ED | In Hook: changeSidebarTab");
+    createImportButton()
 })
 
 Hooks.on("renderSidebarTab", function () {
-    console.log("Step2ED | In Hook: renderSidebarTab");
-    step2ed.createImportButton()
+    console.debug("Step2ED | In Hook: renderSidebarTab");
+    createImportButton()
 })
 
 
