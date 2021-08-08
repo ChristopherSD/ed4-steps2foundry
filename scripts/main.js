@@ -17,6 +17,8 @@ class Step2Ed {
             "earthdawn-pg-compendium.talent-description": "Talents"
         }
 
+        this.moneyNames = ["Gold", "Silver", "Copper"];
+
         this.pointcost = {
             "-2": -2,
             "-1": -1,
@@ -40,7 +42,6 @@ class Step2Ed {
         };
 
         this.filepath = filepath;
-
     }
 
     async importJSON() {
@@ -111,6 +112,8 @@ class Step2Ed {
         // the finalize Build button only works when no action afterwards except re-rendering the sheet?
     }
 
+    moneyNames;
+
     async _import() {
         if (!this.sstep.hasOwnProperty("StepsVersion")) {
             ui.notifications.error(game.i18n.localize("ERROR.InvalidSecStepFile"));
@@ -168,9 +171,8 @@ class Step2Ed {
             }
 
             for (const item of this.sstep.Equipment) {
-                switch (item.Type) {
-                    case "Valuable":
-                        if (["Gold", "Silver", "Copper"].indexOf(item.ID) > -1) {
+                if (item.Type === "Valuable") {
+                        if (this.moneyNames.indexOf(item.ID) > -1) {
                             updateData.money[item.ID.toLowerCase()] = parseInt(item.Count);
                         }
                 }
@@ -209,6 +211,7 @@ class Step2Ed {
             const item = await pack.getDocument(itemID);
             return game.items.fromCompendium(item);
         } catch (e) {
+            // TODO: write all items unable to receive in Journal Entry as control log for later
             console.log(`Step2ED | Could not retrieve item "${itemName}" from compendium "${compendiumName}"`)
             return {};
         }
@@ -227,7 +230,9 @@ class Step2Ed {
 
         for (const itemEntry of sstepItems) {
             // get item as object from compendium
-            let compItem = await this._getCompendiumItem(compName, this._getItemNameForComp(itemEntry.ID, compType));
+            const itemName = this._getItemNameForComp(itemEntry.ID, compType, itemEntry.Name ?? "");
+            if (this.moneyNames.indexOf(itemName) > -1) continue; // Skip money, already done outside
+            let compItem = await this._getCompendiumItem(compName, itemName);
 
             // check if compItem is empty for error handling
             if (!$.isEmptyObject(compItem)) {
@@ -252,21 +257,39 @@ class Step2Ed {
         return items;
     }
 
-    _getItemNameForComp(sstepID, compType) {
+    _getItemNameForComp(sstepID, compType, sstepName = "") {
         let name = this._spaceCamelCase(sstepID);
 
-        // for Thread Weaving Talent
-        if (name.indexOf("Thread Weaving ") > -1) {
-            const threadWeav = "Thread Weaving ";
-            name = threadWeav + "(" + name.substring(threadWeav.length) + ")";
+        switch (compType) {
+            case "Talents":
+                // for Thread Weaving Talent
+                if (name.indexOf("Thread Weaving ") > -1) {
+                    const threadWeav = "Thread Weaving ";
+                    name = threadWeav + "(" + name.substring(threadWeav.length) + ")";
+                }
+                if (name.startsWith("Read ")) name = "Read and Write Language"
+                break;
+            case "Skills":
+                if (name.startsWith("Read ")) {
+                    name = "Read/Write Language"
+                }
+                // artisan and knowledge skills
+                else if (name.startsWith("Artisan")) {
+                    name = "Artisan Skill (" + sstepName + ")";
+                }
+                else if (name.startsWith("Knowledge")) {
+                    name = "Knowledge (" + sstepName + ")";
+                }
+                break;
+            case "Spells":
+                // the starting letters of the spellcasting disciplines (including Shaman already)
+                if (new RegExp(/(E|I|N|W|S)\s\w/, 'i').test(name)) {
+                    name = name.substring(name.indexOf(' ') + 1);
+                }
+                break;
         }
 
-        // for Spells
-        if ((compType === "Spells") && (new RegExp(/(E|I|N|W|S)\s\w/, 'i').test(name))) {
-            name = name.substring(name.indexOf(' ') + 1);
-        }
-
-        console.debug("Compendium Item Name:\t" + name);
+        console.debug(compType + "Compendium Item Name:\t" + name);
         return name;
     }
 
