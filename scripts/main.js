@@ -1,12 +1,22 @@
 class Step2Ed {
 
     constructor(filepath) {
-        this.compThreadItems = "earthdawn-pg-compendium.goods";
+        this.compGoods = "earthdawn-pg-compendium.goods";
         this.compSpells = "earthdawn-pg-compendium.spells";
         this.compDiscipline = "earthdawn-pg-compendium.disciplin";
         this.compNamegiver = "earthdawn-pg-compendium.namegiver";
         this.compSkills = "earthdawn-pg-compendium.skill-description";
         this.compTalents = "earthdawn-pg-compendium.talent-description";
+
+        this.compTypes = {
+            "earthdawn-pg-compendium.goods": "Equipment",
+            "earthdawn-pg-compendium.spells": "Spells",
+            "earthdawn-pg-compendium.disciplin": "Disciplines",
+            "earthdawn-pg-compendium.namegiver": "Race",
+            "earthdawn-pg-compendium.skill-description": "Skills",
+            "earthdawn-pg-compendium.talent-description": "Talents"
+        }
+
         this.pointcost = {
             "-2": -2,
             "-1": -1,
@@ -167,13 +177,16 @@ class Step2Ed {
 
             }
 
-            console.debug("Step2ED | Getting Talents")
-            const talents = await this._getTalentItems();
+            console.debug("Step2ED | Getting Items")
+            const talents = await this._getAllItemsFromComp(this.compTalents);
+            const skills = await this._getAllItemsFromComp(this.compSkills);
+            const spells = await this._getAllItemsFromComp(this.compSpells);
+            const equipment = await this._getAllItemsFromComp(this.compGoods);
 
             // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
 
             console.debug("Step2ED | Adding Items to Actor")
-            await this.actor.createEmbeddedDocuments("Item", talents);
+            await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment));
 
             console.debug("Step2ED | Updating Actor Data")
             await this.actor.update({data: updateData});
@@ -201,41 +214,70 @@ class Step2Ed {
         }
     }
 
-    async _getTalentItems() {
-        let talents = []
-        for (const talentEntry of this.sstep.Talents) {
+    async _getAllItemsFromComp(compName) {
+        const compType = this.compTypes[compName];
+        console.debug(`Getting ${compType} Items`);
+
+        let items = []
+        let sstepItems = this.sstep[compType];
+        if (!Array.isArray(sstepItems)) {
+            console.warn("Could not get second step items for type: " + compType);
+            return;
+        }
+
+        for (const itemEntry of sstepItems) {
             // get item as object from compendium
-            let compItem = await this._getCompendiumItem(this.compTalents, this._getTalentName(talentEntry.ID));
+            let compItem = await this._getCompendiumItem(compName, this._getItemNameForComp(itemEntry.ID, compType));
 
             // check if compItem is empty for error handling
             if (!$.isEmptyObject(compItem)) {
-                // set talent data
-                compItem.data.ranks = talentEntry.Rank;
-                compItem.data.source = talentEntry.Type === "Optional" ? "Option" : talentEntry.Type;
 
-                // put it in the talents that are returned
-                talents.push(compItem);
+                // set item type specific data
+                switch (compType) {
+                    case "Talents":
+                        compItem.data.ranks = itemEntry.Rank;
+                        compItem.data.source = itemEntry.Type === "Optional" ? "Option" : itemEntry.Type;
+                        break;
+                    case "Skills":
+                        compItem.data.ranks = itemEntry.Rank;
+                        break;
+                    case "Equipment":
+                        compItem.data.amount = itemEntry.Count;
+                }
+
+                // put it in the items that are returned
+                items.push(compItem);
             }
         }
-        return talents;
+        return items;
     }
 
-    _getTalentName(sstepID) {
-        let name = this._removeEditionPrefix(sstepID)
-            .replace(/([A-Z])/g, ' $1')
-            .trim();
+    _getItemNameForComp(sstepID, compType) {
+        let name = this._spaceCamelCase(sstepID);
 
+        // for Thread Weaving Talent
         if (name.indexOf("Thread Weaving ") > -1) {
             const threadWeav = "Thread Weaving ";
             name = threadWeav + "(" + name.substring(threadWeav.length) + ")";
         }
 
-        console.debug(name);
+        // for Spells
+        if ((compType === "Spells") && (new RegExp(/(E|I|N|W|S)\s\w/, 'i').test(name))) {
+            name = name.substring(name.indexOf(' ') + 1);
+        }
+
+        console.debug("Compendium Item Name:\t" + name);
         return name;
     }
 
     _removeEditionPrefix(string) {
         return string.replace(this.edition,  '');
+    }
+
+    _spaceCamelCase(string) {
+        return this._removeEditionPrefix(string)
+            .replace(/([A-Z])/g, ' $1')
+            .trim();
     }
 }
 
