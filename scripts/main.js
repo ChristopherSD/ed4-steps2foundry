@@ -220,6 +220,7 @@ class Steps2Foundry {
                     "folder": journalFolder.id
                 });
 
+            ui.notifications.info("INFO.SuccessfullImport")
         } catch (e) {
             ui.notifications.error(game.i18n.localize("ERROR.UnableToImport"));
             console.error(e);

@@ -9,5 +9,7 @@
   "ERROR.InvalidSecStepFile": "Die hochgeladene Datei ist keine valide Second Step JSON-Datei.",
   "ERROR.UnableToImport": "Sorry, da ist was schief gegangen. Schau mal in die Konsole (F12) oder schreibe eine bug report in Github.",
 
-  "WARNING.NoFirstDiscipline": "Die hochgeladene Datei enthält keine erste Disziplin."
+  "WARNING.NoFirstDiscipline": "Die hochgeladene Datei enthält keine erste Disziplin.",
+
+  "INFO.SuccessfullImport": "Character {name} erfolgreich importiert. Knorke!"
 }

@@ -9,5 +9,7 @@
   "ERROR.InvalidSecStepFile": "The uploaded file is not a valid Second Step JSON File.",
   "ERROR.UnableToImport": "Sorry, something went wrong. Have a look at the console (F12) or write a bug report.",
 
-  "WARNING.NoFirstDiscipline": "The uploaded file does not contain a first discipline."
+  "WARNING.NoFirstDiscipline": "The uploaded file does not contain a first discipline.",
+
+  "INFO.SuccessfullImport": "Successfully imported character {name}. Nice!"
 }
