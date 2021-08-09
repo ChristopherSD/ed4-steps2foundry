@@ -1,0 +1,13 @@
+{
+  "CONTEXT.ImportFromSecStep": "Importiere von SecondStep",
+  "CONTEXT.ImportSecStep": "Importiere SecondStep",
+
+  "JOURNAL.ImportLogEntryName": "Step2ED - Import Log für {name}",
+  "JOURNAL.NamesJournal": "{name}s Journal",
+  "JOURNAL.MissingCompItem": "Das Item \"{itemName}\" wurde nicht im Kompendium \"{compendiumName}\" gefunden",
+
+  "ERROR.InvalidSecStepFile": "Die hochgeladene Datei ist keine valide Second Step JSON-Datei.",
+  "ERROR.UnableToImport": "Sorry, da ist was schief gegangen. Schau mal in die Konsole (F12) oder schreibe eine bug report in Github.",
+
+  "WARNING.NoFirstDiscipline": "Die hochgeladene Datei enthält keine erste Disziplin."
+}
