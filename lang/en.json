@@ -2,7 +2,7 @@
   "CONTEXT.ImportFromSecStep": "Import from 2ndStep",
   "CONTEXT.ImportSecStep": "Import 2ndStep",
 
-  "JOURNAL.ImportLogEntryName": "Step2ED - Import Log",
+  "JOURNAL.ImportLogEntryName": "Step2ED - Import Log for {name}",
   "JOURNAL.NamesJournal": "{name}'s Journal",
   "JOURNAL.MissingCompItem": "Could not retrieve item \"{itemName}\" from compendium \"{compendiumName}\"",
 

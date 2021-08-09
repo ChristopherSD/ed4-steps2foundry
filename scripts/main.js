@@ -212,7 +212,7 @@ class Step2Ed {
             // create import log as journal entry for easy user lookup
             await JournalEntry.create(
                 {
-                    "name": game.i18n.localize("JOURNAL.ImportLogEntryName"),
+                    "name": game.i18n.format("JOURNAL.ImportLogEntryName", {"name": this.sstep.Basic.Name}),
                     "content": this.journalLogText,
                     "folder": journalFolder.id
                 });
