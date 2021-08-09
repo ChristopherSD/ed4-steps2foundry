@@ -3,6 +3,7 @@
   "CONTEXT.ImportSecStep": "Import 2ndStep",
 
   "JOURNAL.ImportLogEntryName": "Step2ED - Import Log",
+  "JOURNAL.NamesJournal": "{name}'s Journal",
   "JOURNAL.MissingCompItem": "Could not retrieve item \"{itemName}\" from compendium \"{compendiumName}\"",
 
   "ERROR.InvalidSecStepFile": "The uploaded file is not a valid Second Step JSON File.",

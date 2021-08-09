@@ -190,7 +190,12 @@ class Step2Ed {
             const spells = await this._getAllItemsFromComp(this.compSpells);
             const equipment = await this._getAllItemsFromComp(this.compGoods);
 
-            // TODO: create a JournalEntry where the sstep.Basic.LogText comes in
+            await JournalEntry.create(
+                {
+                    "name": game.i18n.format("JOURNAL.NamesJournal", {"name": this.sstep.Basic.Name}),
+                    "content": this._createJournalText(this.sstep.Basic.LogText),
+                    "folder": journalFolder.id
+                });
 
             console.debug("Step2ED | Adding Items to Actor")
             await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment));
