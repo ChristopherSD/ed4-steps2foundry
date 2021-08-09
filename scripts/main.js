@@ -115,7 +115,10 @@ class Step2Ed {
     }
 
     _createJournalText(text) {
-        return '<p class="MsoNormal" style="margin-bottom:.0001pt;line-height:normal;mso-layout-grid-align:none;text-autospace:none">' + text + '</p>';
+        const pTagOpen = '<p class="MsoNormal" style="margin-bottom:.0001pt;line-height:normal;mso-layout-grid-align:none;text-autospace:none">';
+        const pTagClose = '</p>';
+
+        return pTagOpen + text.split("\n").join(pTagClose + pTagOpen) + pTagClose;
     }
 
     async _import() {
@@ -308,7 +311,7 @@ class Step2Ed {
                 break;
             case "Spells":
                 // the starting letters of the spellcasting disciplines (including Shaman already)
-                if (new RegExp(/(E|I|N|W|S)\s\w/, 'i').test(name)) {
+                if (new RegExp(/([EINWS])\s\w/, 'i').test(name)) {
                     name = name.substring(name.indexOf(' ') + 1);
                 }
                 break;
