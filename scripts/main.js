@@ -41,6 +41,8 @@ class Step2Ed {
             "Cha": "charisma"
         };
 
+        this.journalLogText = "";
+
         this.filepath = filepath;
     }
 
@@ -112,7 +114,9 @@ class Step2Ed {
         // the finalize Build button only works when no action afterwards except re-rendering the sheet?
     }
 
-    moneyNames;
+    _createJournalText(text) {
+        return '<p class="MsoNormal" style="margin-bottom:.0001pt;line-height:normal;mso-layout-grid-align:none;text-autospace:none">' + text + '</p>';
+    }
 
     async _import() {
         if (!this.sstep.hasOwnProperty("StepsVersion")) {
@@ -121,6 +125,15 @@ class Step2Ed {
         }
 
         try {
+            console.debug("Step2ED | Create new JournalEntry Folder");
+            let journalFolder = await Folder.create(
+                {
+                    "name": "Step2ED",
+                    "type": "JournalEntry",
+                    "description": "<p>Contains data created by the import process of the Step2ED Module</p>",
+                    "color": "#efd1c5"
+                });
+
             console.debug("Step2ED | Creating new Actor");
 
             this.actor = await Actor.create({
@@ -142,22 +155,14 @@ class Step2Ed {
             console.debug("Step2ED | Creating Actor Update Data");
 
             let updateData = {
-                "biography": this.sstep.Basic.Description,
+                "description": this.sstep.Basic.Description,
                 "height": this.sstep.Basic.Height,
-                "sex": this.sstep.Basic.Gender,
+                "gender": this.sstep.Basic.Gender,
                 "weight": this.sstep.Basic.Weight,
                 "age": this.sstep.Basic.Age,
                 "hair": this.sstep.Basic.Hair,
                 "eyes": this.sstep.Basic.Eyes,
                 "skin": this.sstep.Basic.Skin,
-                /*"attributes": {
-                    "dexterityvalue": actor.data.data.attributes.dexterityinitial + this.sstep.Attributes.Dex.Increases,
-                    "strengthvalue": actor.data.data.attributes.strengthinitial + this.sstep.Attributes.Str.Increases,
-                    "toughnessvalue": actor.data.data.attributes.toughnessinitial + this.sstep.Attributes.Tou.Increases,
-                    "perceptionvalue": actor.data.data.attributes.perceptioninitial + this.sstep.Attributes.Per.Increases,
-                    "willpowervalue": actor.data.data.attributes.willpowerinitial + this.sstep.Attributes.Wil.Increases,
-                    "charismavalue": actor.data.data.attributes.charismainitial + this.sstep.Attributes.Cha.Increases
-                },*/
                 "damage": {
                     "value": this.sstep.Damage
                 },
@@ -198,6 +203,15 @@ class Step2Ed {
             await this._createBaseAttributes();
             await this.actor.sheet.close();
             await this.actor.sheet._render(true);
+
+            // create import log as journal entry for easy user lookup
+            await JournalEntry.create(
+                {
+                    "name": game.i18n.localize("JOURNAL.ImportLogEntryName"),
+                    "content": this.journalLogText,
+                    "folder": journalFolder.id
+                });
+
         } catch (e) {
             ui.notifications.error(game.i18n.localize("ERROR.UnableToImport"));
             console.error(e);
@@ -211,8 +225,14 @@ class Step2Ed {
             const item = await pack.getDocument(itemID);
             return game.items.fromCompendium(item);
         } catch (e) {
-            // TODO: write all items unable to receive in Journal Entry as control log for later
-            console.log(`Step2ED | Could not retrieve item "${itemName}" from compendium "${compendiumName}"`)
+            const missingItemMessage = game.i18n.format(
+                "JOURNAL.MissingCompItem",
+                {
+                    "itemName": itemName,
+                    "compendiumName": compendiumName
+                });
+            this.journalLogText += this._createJournalText("Compendium Item | " + missingItemMessage);
+            console.log("Step2ED | " + missingItemMessage)
             return {};
         }
     }
