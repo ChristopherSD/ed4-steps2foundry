@@ -1,4 +1,4 @@
-class Step2Ed {
+class Steps2Foundry {
 
     constructor(filepath) {
         this.compGoods = "earthdawn-pg-compendium.goods";
@@ -47,7 +47,7 @@ class Step2Ed {
     }
 
     async importJSON() {
-        console.debug("Step2ED | Loading JSON file:\t" + this.filepath);
+        console.debug("Steps2Foundry | Loading JSON file:\t" + this.filepath);
         await $.getJSON(this.filepath, data => this.sstep = data);
         await this._import();
     }
@@ -128,16 +128,16 @@ class Step2Ed {
         }
 
         try {
-            console.debug("Step2ED | Create new JournalEntry Folder");
-            let journalFolder = game.folders.getName("Step2ED") || await Folder.create(
+            console.debug("Steps2Foundry | Create new JournalEntry Folder");
+            let journalFolder = game.folders.getName("Steps2Foundry") || await Folder.create(
                 {
-                    "name": "Step2ED",
+                    "name": "Steps2Foundry",
                     "type": "JournalEntry",
-                    "description": "<p>Contains data created by the import process of the Step2ED Module</p>",
+                    "description": "<p>Contains data created by the import process of the Steps2Foundry Module</p>",
                     "color": "#efd1c5"
                 });
 
-            console.debug("Step2ED | Creating new Actor");
+            console.debug("Steps2Foundry | Creating new Actor");
 
             this.actor = await Actor.create({
                 name: this.sstep.Basic.Name,
@@ -149,13 +149,13 @@ class Step2Ed {
             this.edition = this.sstep.Options.Edition;
             this.race = this._removeEditionPrefix(this.sstep.Race);
 
-            console.debug("Step2ED | Adding Namegiver Race");
+            console.debug("Steps2Foundry | Adding Namegiver Race");
             await this._addNamegiverRace();
 
-            console.debug("Step2ED | Adding First Discipline");
+            console.debug("Steps2Foundry | Adding First Discipline");
             await this._addDisciplines();
 
-            console.debug("Step2ED | Creating Actor Update Data");
+            console.debug("Steps2Foundry | Creating Actor Update Data");
 
             let updateData = {
                 "description": this.sstep.Basic.Description,
@@ -187,7 +187,7 @@ class Step2Ed {
 
             }
 
-            console.debug("Step2ED | Getting Items")
+            console.debug("Steps2Foundry | Getting Items")
             const talents = await this._getAllItemsFromComp(this.compTalents);
             const skills = await this._getAllItemsFromComp(this.compSkills);
             const spells = await this._getAllItemsFromComp(this.compSpells);
@@ -200,13 +200,13 @@ class Step2Ed {
                     "folder": journalFolder.id
                 });
 
-            console.debug("Step2ED | Adding Items to Actor")
+            console.debug("Steps2Foundry | Adding Items to Actor")
             await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment));
 
-            console.debug("Step2ED | Updating Actor Data")
+            console.debug("Steps2Foundry | Updating Actor Data")
             await this.actor.update({data: updateData});
 
-            console.debug("Step2ED | Creating base attributes");
+            console.debug("Steps2Foundry | Creating base attributes");
 
             await this._createBaseAttributes();
             await this.actor.sheet.close();
@@ -240,7 +240,7 @@ class Step2Ed {
                     "compendiumName": compendiumName
                 });
             this.journalLogText += this._createJournalText("Compendium Item | " + missingItemMessage);
-            console.log("Step2ED | " + missingItemMessage)
+            console.log("Steps2Foundry | " + missingItemMessage)
             return {};
         }
     }
@@ -334,7 +334,7 @@ class Step2Ed {
 
 class JSONPicker extends FilePicker {
     constructor(options = {}) {
-        console.debug("Step2ED | Create JSONPicker");
+        console.debug("Steps2Foundry | Create JSONPicker");
         super(options);
         this.extensions = ['.json', '.JSON']
     }
@@ -345,7 +345,7 @@ function createImportButton() {
     // At least it appends the button twice, so check if already exists..
     if (!!document.getElementById("import-button-secondstep")) return;
 
-    console.debug("Step2ED | Adding Import Button");
+    console.debug("Steps2Foundry | Adding Import Button");
 
     // find the create-entity buttons and insert our import button after them
     let createButtons =  $("section#actors div.header-actions.action-buttons.flexrow");
@@ -360,7 +360,7 @@ function createImportButton() {
     document.getElementById("import-button-secondstep").addEventListener("click", function() {
         new JSONPicker({
             callback: file => {
-                let importer = new Step2Ed(file);
+                let importer = new Steps2Foundry(file);
                 importer.importJSON();
             }
         }).browse();
@@ -382,17 +382,17 @@ Hooks.on("init", function () {
 })
 
 Hooks.on("ready", function () {
-    console.debug("Step2ED | In Hook: ready");
+    console.debug("Steps2Foundry | In Hook: ready");
     createImportButton()
 })
 
 Hooks.on("changeSidebarTab", function () {
-    console.debug("Step2ED | In Hook: changeSidebarTab");
+    console.debug("Steps2Foundry | In Hook: changeSidebarTab");
     createImportButton()
 })
 
 Hooks.on("renderSidebarTab", function () {
-    console.debug("Step2ED | In Hook: renderSidebarTab");
+    console.debug("Steps2Foundry | In Hook: renderSidebarTab");
     createImportButton()
 })
 
