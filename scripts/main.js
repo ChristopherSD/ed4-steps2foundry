@@ -369,16 +369,6 @@ function createImportButton() {
 
 Hooks.on("init", function () {
     console.log("###############\n\nSecond Step Import for ED4:\n\tWe're on!\n\n###############");
-
-    /*game.settings.register('ED4_Steps2Foundry', 'Import File', {
-        name: 'Import a SecondStep JSON file',
-        hint: 'Import it',
-        scope: 'client',
-        config: true,
-        type: String,
-        filePicker: 'file'
-    })
-    */
 })
 
 Hooks.on("ready", function () {
