@@ -36,6 +36,7 @@ _(yes, I promise I will change the background color some day)_
 - This is somewhat of an alpha/beta version, a first release. There might be stuff not working right now. If you find this stuff, please open an issue here on github and I will try to take care of it as soon as possible.
 - The module is currently only tested with files generated from the online version of SecondStep. Feel free to try it with the standalone application and let me know how it goes.
 - The character sheet that opens up will flicker for a second. That is because the sheet has to be closed and re-opened for some changes to take effect. I'm trying to find another solution to this, but this is currently the only working possibility, sorry.
+- If you don't need to import any more characters, you can just disable the module in the settings, this way the import button disappears and doesn't clutter your UI.
 
 
 ## Other stuff
