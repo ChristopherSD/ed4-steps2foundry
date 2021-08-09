@@ -126,7 +126,7 @@ class Step2Ed {
 
         try {
             console.debug("Step2ED | Create new JournalEntry Folder");
-            let journalFolder = await Folder.create(
+            let journalFolder = game.folders.getName("Step2ED") || await Folder.create(
                 {
                     "name": "Step2ED",
                     "type": "JournalEntry",
