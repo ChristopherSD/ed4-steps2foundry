@@ -10,6 +10,7 @@ The module currently is built to only work with the [Earthdawn 4th Edition Playe
 
 ## How to Use
 1. After installing and activating the module in your game, you should see a button ("Import 2ndStep") in the Actors Directory of your sidebar. 
+
 ![image](https://user-images.githubusercontent.com/15212005/128745517-5a626f95-60ff-46f7-bf16-eb7727ec0aec.png)
 
 2. Click the button: a dialog opens, asking you to select a file. Choose the \*.json file you downloaded from [SecondStep](www.secondstep.dk/Steps/), and click _Select File_.
@@ -17,7 +18,9 @@ The module currently is built to only work with the [Earthdawn 4th Edition Playe
 3. The module then does its magic, and you should see a new character sheet open on the screen.
 
 4. Check if everything worked out and have a look in the Journals Directory in the sidetab for log files (in the folder _Steps2Foundry_).
+
 ![image](https://user-images.githubusercontent.com/15212005/128746862-b18ca2e0-c06a-4b44-a007-5bdcb377b018.png)
+
 _(yes, I promise I will change the background color some day)_
 
 5. Done!
