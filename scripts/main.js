@@ -89,22 +89,28 @@ class Steps2Foundry {
         document.querySelector("div.LegendTab a.show-hidden").click();
 
         const attributes = this.sstep.Attributes;
-        for (const att in attributes) {
-            if (!attributes.hasOwnProperty(att)) continue;
+        // sort the attribute buildpoints ascending, since the character creation does not allow excess point input#
+        let buildpoints = {};
+        for (const a in attributes) {
+            if (!attributes.hasOwnProperty(a)) continue;
+            buildpoints[a] = String(attributes[a].Buildpoints);
+        }
+        const sortedAttributes = Object.entries(buildpoints).sort(([,a],[,b]) => a-b);
 
-            const pointsCost = attributes[att].Buildpoints;
+        for (const att of sortedAttributes) {
+            const pointsCost = att[1];
             const points = this.pointcost[pointsCost];
 
-            let attribute = this.attributeAbbreviations[att];
+            let attribute = this.attributeAbbreviations[att[0]];
             if (points === 0) {
-                document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="plus"]`).click();
                 document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="minus"]`).click();
+                document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="plus"]`).click();
             }
             else {
                 let direction = points > 0 ? "plus" : "minus";
                 let button = document.querySelector(`a.att-change-button[data-att="${attribute}"][data-direction="${direction}"]`);
 
-                for (let i = 0; i < points; i++) {
+                for (let i = 0; i < Math.abs(points); i++) {
                     button.click();
                 }
             }
@@ -182,9 +188,9 @@ class Steps2Foundry {
 
             for (const item of this.sstep.Equipment) {
                 if (item.Type === "Valuable") {
-                        if (this.moneyNames.indexOf(item.ID) > -1) {
-                            updateData.money[item.ID.toLowerCase()] = parseInt(item.Count);
-                        }
+                    if (this.moneyNames.indexOf(item.ID) > -1) {
+                        updateData.money[item.ID.toLowerCase()] = parseInt(item.Count);
+                    }
                 }
 
             }
