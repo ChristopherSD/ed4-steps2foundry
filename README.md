@@ -1,8 +1,6 @@
 # Steps2Foundry
 A Foundry VTT module to import characters created with [SecondStep](www.secondstep.dk/Steps/) into the [Earthdawn 4th Edition game system](https://foundryvtt.com/packages/earthdawn4e) in [Foundry VTT](https://foundryvtt.com/).
 
-![Foundry Core Compatible Version](https://img.shields.io/badge/dynamic/json.svg?url=https%3A%2F%2Fraw.githubusercontent.com%2F[ChristopherSD]%2F[ed4-steps2foundry]%2Fmain%2Fsrc%2Fmodule.json&label=Foundry%20Version&query=$.compatibleCoreVersion&colorB=orange)
-
 
 ## Requirements
 The module currently is built to only work with the [Earthdawn 4th Edition Player's Guide](https://foundryvtt.com/packages/earthdawn-pg-compendium), which has to be activated in your game. This is because it contains all talents/skills/disciplines/namegivers/equipment and to avoid licensing issues.
