@@ -115,6 +115,8 @@ class Steps2Foundry {
     }
 
     _createJournalText(text) {
+        if (!text) return "";
+
         const pTagOpen = '<p class="MsoNormal" style="margin-bottom:.0001pt;line-height:normal;mso-layout-grid-align:none;text-autospace:none">';
         const pTagClose = '</p>';
 
