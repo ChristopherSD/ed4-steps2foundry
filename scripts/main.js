@@ -153,14 +153,17 @@ class Steps2Foundry {
             console.debug("Steps2Foundry | Creating new Actor");
 
             this.actor = await Actor.create({
-                name: this.sstep.Basic.Name,
+                name: this.sstep.Basic.Name || "SecondStep - No Name at Import",
                 type: "pc",
                 image: this.sstep.PortraitURL
             });
 
             // get basic constants
             this.edition = this.sstep.Options.Edition;
-            this.race = this._removeEditionPrefix(this.sstep.Race);
+            this.race = this._getItemNameForComp(
+                this._removeEditionPrefix(this.sstep.Race),
+                this.compTypes[this.compNamegiver]
+            );
 
             console.debug("Steps2Foundry | Adding Namegiver Race");
             await this._addNamegiverRace();
