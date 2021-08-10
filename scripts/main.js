@@ -61,7 +61,12 @@ class Steps2Foundry {
             disciplineEntry = discipline;
             let disciplineItem = await this._getCompendiumItem(
                 this.compDiscipline,
-                this._removeEditionPrefix(disciplineEntry.ID)
+                this._getItemNameForComp(
+                    this._removeEditionPrefix(
+                        disciplineEntry.ID
+                    ),
+                    this.compTypes[this.compDiscipline]
+                )
             );
             disciplineItem.data.circle = disciplineEntry.Circle;
             disciplines.push(disciplineItem);
@@ -322,6 +327,11 @@ class Steps2Foundry {
                 // the starting letters of the spellcasting disciplines (including Shaman already)
                 if (new RegExp(/([EINWS])\s\w/, 'i').test(name)) {
                     name = name.substring(name.indexOf(' ') + 1);
+                }
+                break;
+            case "Race":
+                if (name.indexOf("krang") > -1) {
+                    name = "T'skrang";
                 }
                 break;
         }
