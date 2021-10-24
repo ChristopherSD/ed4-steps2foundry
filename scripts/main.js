@@ -1,6 +1,10 @@
 class Steps2Foundry {
 
     constructor(filepath) {
+        // supported character sheets
+        this.sheetTaka = "TakaCharacterSheet";
+        this.sheetDefault = "earthdawn4ePCSheet";
+
         this.compGoods = "earthdawn-pg-compendium.goods";
         this.compSpells = "earthdawn-pg-compendium.spells";
         this.compDiscipline = "earthdawn-pg-compendium.disciplin";
@@ -40,6 +44,14 @@ class Steps2Foundry {
             "Wil": "willpower",
             "Cha": "charisma"
         };
+        this.namegiverAttributeNames = {
+            "Dex": "dexterityvalue",
+            "Str": "strengthvalue",
+            "Tou": "toughnessvalue",
+            "Per":"perceptionvalue",
+            "Wil":"willpowervalue",
+            "Cha":"charismavalue"
+        }
 
         this.journalLogText = "";
 
@@ -86,12 +98,54 @@ class Steps2Foundry {
     }
 
     async _createBaseAttributes() {
-        // open the notes and legend tab of the character sheet to go to character creation
-        // this is necessary since secondStep Jsons only have the starting point costs and calculate final attribute values on the fly
-        await this.actor.sheet._render(true); // inner render method since the promise is not propagated outwards
 
-        document.querySelector('[data-tab="storyNotes"]').click();
-        document.querySelector("div.LegendTab a.show-hidden").click();
+        let sheetName = this.actor._getSheetClass().name;
+
+        if (sheetName === this.sheetDefault) {
+            // open the notes and legend tab of the character sheet to go to character creation
+            // this is necessary since secondStep Jsons only have the starting point costs and calculate final attribute values on the fly
+            await this.actor.sheet._render(true); // inner render method since the promise is not propagated outwards
+
+            document.querySelector('[data-tab="storyNotes"]').click();
+            document.querySelector("div.LegendTab a.show-hidden").click();
+        }
+        else if (sheetName === this.sheetTaka) {
+            /*await document.querySelector('a.chargen').click();
+            await this.actor.sheet._render(true);*/
+
+            const namegiverBase = this.actor.items.filter(e => e.type === 'namegiver')[0].data.data.attributes;
+            let newAttributes = {};
+            for (let [att, points] of Object.entries(this.sstep.Attributes)) {
+                let addedValue = Number(this.pointcost[points["Buildpoints"]]) +
+                    Number(this.pointcost[points["Increases"]]);
+                let baseValue = Number(namegiverBase[this.namegiverAttributeNames[att]]);
+                newAttributes[att] = baseValue + addedValue;
+            }
+
+            const unspentPoints = 25 -
+                Object.values(this.sstep.Attributes)
+                    .map(e => Number(e.Buildpoints))
+                    .reduce((a, b) => a + b);
+
+            await this.actor.update({
+                'data.attributes.dexterityinitial': newAttributes["Dex"],
+                'data.attributes.strengthinitial': newAttributes["Str"],
+                'data.attributes.toughnessinitial': newAttributes["Tou"],
+                'data.attributes.perceptioninitial': newAttributes["Per"],
+                'data.attributes.willpowerinitial': newAttributes["Wil"],
+                'data.attributes.charismainitial': newAttributes["Cha"],
+                'data.attributes.dexterityvalue': newAttributes["Dex"],
+                'data.attributes.strengthvalue': newAttributes["Str"],
+                'data.attributes.toughnessvalue': newAttributes["Tou"],
+                'data.attributes.perceptionvalue': newAttributes["Per"],
+                'data.attributes.willpowervalue': newAttributes["Wil"],
+                'data.attributes.charismavalue': newAttributes["Cha"],
+                'data.unspentattributepoints': unspentPoints
+            });
+
+            return;
+        }
+
 
         const attributes = this.sstep.Attributes;
         // sort the attribute buildpoints ascending, since the character creation does not allow excess point input#
