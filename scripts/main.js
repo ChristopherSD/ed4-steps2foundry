@@ -11,6 +11,7 @@ class Steps2Foundry {
         this.compNamegiver = "earthdawn-pg-compendium.namegiver";
         this.compSkills = "earthdawn-pg-compendium.skill-description";
         this.compTalents = "earthdawn-pg-compendium.talent-description";
+        this.compThreadItems = "earthdawn-gm-compendium.thread-items";
 
         this.compTypes = {
             "earthdawn-pg-compendium.goods": "Equipment",
@@ -18,7 +19,8 @@ class Steps2Foundry {
             "earthdawn-pg-compendium.disciplin": "Disciplines",
             "earthdawn-pg-compendium.namegiver": "Race",
             "earthdawn-pg-compendium.skill-description": "Skills",
-            "earthdawn-pg-compendium.talent-description": "Talents"
+            "earthdawn-pg-compendium.talent-description": "Talents",
+            "earthdawn-gm-compendium.thread-items": "Thread Items"
         }
 
         this.moneyNames = ["Gold", "Silver", "Copper"];
@@ -262,6 +264,7 @@ class Steps2Foundry {
             const skills = await this._getAllItemsFromComp(this.compSkills);
             const spells = await this._getAllItemsFromComp(this.compSpells);
             const equipment = await this._getAllItemsFromComp(this.compGoods);
+            const threadItems = await this._getAllItemsFromComp(this.compThreadItems);
 
             await JournalEntry.create(
                 {
@@ -271,7 +274,7 @@ class Steps2Foundry {
                 });
 
             console.debug("Steps2Foundry | Adding Items to Actor")
-            await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment));
+            await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment, threadItems));
 
             console.debug("Steps2Foundry | Updating Actor Data")
             await this.actor.update({data: updateData});
@@ -321,7 +324,17 @@ class Steps2Foundry {
         console.debug(`Getting ${compType} Items`);
 
         let items = []
-        let sstepItems = this.sstep[compType];
+        let sstepItems;
+        if (compType === "Thread Items") {
+            sstepItems = this.sstep["Equipment"].filter(e => e["Type"] === "Thread Item");
+        }
+        else if (compType === "Equipment") {
+            sstepItems = this.sstep["Equipment"].filter(e => e["Type"] !== "Thread Item");
+        }
+        else {
+            sstepItems = this.sstep[compType];
+        }
+
         if (!Array.isArray(sstepItems)) {
             console.warn("Could not get second step items for type: " + compType);
             return;
@@ -379,16 +392,94 @@ class Steps2Foundry {
                 else if (name.startsWith("Knowledge")) {
                     name = "Knowledge (" + sstepName + ")";
                 }
+                if (name.includes("Entertainer")) {
+                    name = "Entertainer";
+                }
                 break;
             case "Spells":
                 // the starting letters of the spellcasting disciplines (including Shaman already)
                 if (new RegExp(/([EINWS])\s\w/, 'i').test(name)) {
                     name = name.substring(name.indexOf(' ') + 1);
                 }
+                if (name.includes("Circleof")) {
+                    name = "Life Circle of One";
+                }
+                if (name.includes("Jeer")) {
+                    name = "Fog of Jeer";
+                }
+                if (name.endsWith("Unseen")) {
+                    name = "See the Unseen";
+                }
                 break;
             case "Race":
                 if (name.indexOf("krang") > -1) {
                     name = "T'skrang";
+                }
+                break;
+            case "Equipment":
+                if (name.includes("Travelers")){
+                    name = name.replace("Travelers", "Traveler's");
+                }
+                if (name.includes("Peasants")){
+                    name = name.replace("Peasants", "Peasant's");
+                }
+                if (name.includes("Rations")) {
+                    if (name.includes("Trail")) {
+                        name = "Rations, Trail (1 Week)";
+                    }
+                    if (name.includes("Mine")) {
+                        name = "Rations, Mine (1Week)";
+                    }
+                }
+                if (name.includes("Physicians")) {
+                    name = name.replace("Physicians", "Physician's");
+                }
+                if (name.includes("Artisan Tools ")) {
+                    name = "Artisan Tools (" + name.substring("Artisan Tools ".length) + ")";
+                }
+                if (name.includes("Cloak")) {
+                    name = "Cloak" + "," + name.substring("Cloak".length);
+                }
+                if (name.includes("Shirt")) {
+                    name = "Shirt" + "," + name.substring("Shirt".length);
+                }
+                if (name.includes("Boots")) {
+                    name = "Boots" + "," + name.substring("Boots".length);
+                }
+                if (name.includes("Breeches")) {
+                    name = "Breeches" + "," + name.substring("Breeches".length);
+                }
+                if (name.includes("Flint")) {
+                    name = "Flint and Steel";
+                }
+                if (name.includes("Wateror")) {
+                    name = "Water or Wine Skin";
+                }
+                if (name.includes("Scroll Case")) {
+                    name = "Map and Scroll Case";
+                }
+                if (name.includes("Light Bolts")) {
+                    name += " (15)";
+                }
+                if (name.endsWith(" J")) {
+                    name = name.replace(/.$/,"(Journeyman)");
+                }
+                if (name.endsWith(" N")) {
+                    name = name.replace(/.$/,"(Novice)");
+                }
+                if (name.endsWith(" W")) {
+                    name = name.replace(/.$/,"(Warden)");
+                }
+                break;
+            case "Thread Items":
+                if (name.endsWith(" J")) {
+                    name = name.replace(/.$/,"(Journeyman)");
+                }
+                if (name.endsWith(" N")) {
+                    name = name.replace(/.$/,"(Novice)");
+                }
+                if (name.endsWith(" W")) {
+                    name = name.replace(/.$/,"(Warden)");
                 }
                 break;
         }
