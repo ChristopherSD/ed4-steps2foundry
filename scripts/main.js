@@ -7,7 +7,7 @@ class Steps2Foundry {
 
         this.compGoods = "earthdawn-pg-compendium.goods";
         this.compSpells = "earthdawn-pg-compendium.spells";
-        this.compDiscipline = "earthdawn-pg-compendium.disciplin";
+        this.compDiscipline = "earthdawn-pg-compendium.disciplines";
         this.compNamegiver = "earthdawn-pg-compendium.namegiver";
         this.compSkills = "earthdawn-pg-compendium.skill-description";
         this.compTalents = "earthdawn-pg-compendium.talent-description";
@@ -16,7 +16,7 @@ class Steps2Foundry {
         this.compTypes = {
             "earthdawn-pg-compendium.goods": "Equipment",
             "earthdawn-pg-compendium.spells": "Spells",
-            "earthdawn-pg-compendium.disciplin": "Disciplines",
+            "earthdawn-pg-compendium.disciplines": "Disciplines",
             "earthdawn-pg-compendium.namegiver": "Race",
             "earthdawn-pg-compendium.skill-description": "Skills",
             "earthdawn-pg-compendium.talent-description": "Talents",
@@ -67,6 +67,12 @@ class Steps2Foundry {
     }
 
     async _addDisciplines() {
+
+        // catch version difference of player guid with discipline pack naming
+        if (!game.packs.has(this.compDiscipline)) {
+            this.compDiscipline = "earthdawn-pg-compendium.disciplin";
+        }
+
 
         // get first discipline
         let disciplineEntry = null;
