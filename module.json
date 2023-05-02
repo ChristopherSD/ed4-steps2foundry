@@ -12,8 +12,38 @@
       "discord": "Doc_D [he/they]#1791"
     }
   ],
-  "minimumCoreVersion": "0.8.8",
-  "compatibleCoreVersion": "0.8.8",
+  "relationships": {
+    "systems": [
+      {
+        "id": "earthdawn4e",
+        "compatibility": {
+          "minimum": "0.8",
+          "verified": "0.8"
+        }
+      }
+    ],
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "",
+        "manifest": "",
+        "compatibility": {
+          "minimum": "1.2.0",
+          "verified": "1.4.0",
+          "maximum": "2.0.0"
+        }
+      },
+      {
+        "id": "earthdawn-pg-compendium",
+        "type": "module",
+        "manifest": ""
+      }
+    ]
+  },
+  "compatibility": {
+    "minimum": 10,
+    "verified": 10.291
+  },
   "esmodules": [
     "/scripts/main.js"
   ],
@@ -30,15 +60,6 @@
       "lang": "de",
       "name": "German",
       "path": "lang/de.json"
-    }
-  ],
-  "system": ["earthdawn4e"],
-  "dependencies": [
-    {
-      "name": "lib-wrapper"
-    },
-    {
-      "name": "earthdawn-pg-compendium"
     }
   ],
   "url": "This is auto replaced",
