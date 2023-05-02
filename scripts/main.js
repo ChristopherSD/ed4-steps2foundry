@@ -549,6 +549,7 @@ Hooks.on("ready", function () {
     createImportButton()
 })
 
+/*
 Hooks.on("changeSidebarTab", function () {
     console.debug("Steps2Foundry | In Hook: changeSidebarTab");
     createImportButton()
@@ -558,5 +559,4 @@ Hooks.on("renderSidebarTab", function () {
     console.debug("Steps2Foundry | In Hook: renderSidebarTab");
     createImportButton()
 })
-
-
+*/
