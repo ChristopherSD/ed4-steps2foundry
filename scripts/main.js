@@ -515,7 +515,7 @@ class JSONPicker extends FilePicker {
     }
 }
 
-function createImportButton() {
+function createImportButton(html) {
     // Do Hooks get called twice?
     // At least it appends the button twice, so check if already exists..
     if (!!document.getElementById("import-button-secondstep")) return;
@@ -523,16 +523,14 @@ function createImportButton() {
     console.debug("Steps2Foundry | Adding Import Button");
 
     // find the create-entity buttons and insert our import button after them
-    let createButtons =  $("section#actors div.header-actions.action-buttons.flexrow");
+    // let createButtons =  $("section#actors div.header-actions.action-buttons.flexrow");
 
     const importButton = $(
         `<div class="header-import action-buttons flexrow"><button type="button" id="import-button-secondstep"><i class="fas fa-download "></i>${game.i18n.localize("CONTEXT.ImportSecStep")}</button></div>`
     );
 
-    createButtons[0].insertAdjacentHTML('afterend', importButton[0].outerHTML);
-
     // create a file picker and bind it to the new button
-    document.getElementById("import-button-secondstep").addEventListener("click", function() {
+    importButton.click(function() {
         new JSONPicker({
             callback: file => {
                 let importer = new Steps2Foundry(file);
@@ -540,6 +538,10 @@ function createImportButton() {
             }
         }).browse();
     });
+
+    html.find('.header-actions').append(importButton)
+
+    // createButtons[0].insertAdjacentHTML('afterend', importButton[0].outerHTML);
 }
 
 Hooks.on("init", function () {
@@ -561,6 +563,6 @@ Hooks.on("changeSidebarTab", function () {
 Hooks.on("renderSidebarTab", async (app, html) => {
     if (app.options.id === 'actors') {
         console.debug("Steps2Foundry | In Hook: renderSidebarTab");
-        createImportButton()
+        createImportButton(html)
     }
 })
