@@ -88,8 +88,10 @@ class Steps2Foundry {
                     this.compTypes[this.compDiscipline]
                 )
             );
-            disciplineItem.data.circle = disciplineEntry.Circle;
-            disciplines.push(disciplineItem);
+            if (disciplineItem.type === 'discipline') {
+                disciplineItem.system.circle = disciplineEntry.Circle;
+                disciplines.push(disciplineItem);
+            }
         }
 
         if (disciplines.length < 1) {
@@ -121,7 +123,7 @@ class Steps2Foundry {
             /*await document.querySelector('a.chargen').click();
             await this.actor.sheet._render(true);*/
 
-            const namegiverBase = this.actor.items.filter(e => e.type === 'namegiver')[0].data.data.attributes;
+            const namegiverBase = this.actor.items.filter(e => e.type === 'namegiver')[0].system.attributes;
             let newAttributes = {};
             for (let [att, points] of Object.entries(this.sstep.Attributes)) {
                 let addedValue = Number(this.pointcost[points["Buildpoints"]]) +
@@ -136,19 +138,19 @@ class Steps2Foundry {
                     .reduce((a, b) => a + b);
 
             await this.actor.update({
-                'data.attributes.dexterityinitial': newAttributes["Dex"],
-                'data.attributes.strengthinitial': newAttributes["Str"],
-                'data.attributes.toughnessinitial': newAttributes["Tou"],
-                'data.attributes.perceptioninitial': newAttributes["Per"],
-                'data.attributes.willpowerinitial': newAttributes["Wil"],
-                'data.attributes.charismainitial': newAttributes["Cha"],
-                'data.attributes.dexterityvalue': newAttributes["Dex"],
-                'data.attributes.strengthvalue': newAttributes["Str"],
-                'data.attributes.toughnessvalue': newAttributes["Tou"],
-                'data.attributes.perceptionvalue': newAttributes["Per"],
-                'data.attributes.willpowervalue': newAttributes["Wil"],
-                'data.attributes.charismavalue': newAttributes["Cha"],
-                'data.unspentattributepoints': unspentPoints
+                'system.attributes.dexterityinitial': newAttributes["Dex"],
+                'system.attributes.strengthinitial': newAttributes["Str"],
+                'system.attributes.toughnessinitial': newAttributes["Tou"],
+                'system.attributes.perceptioninitial': newAttributes["Per"],
+                'system.attributes.willpowerinitial': newAttributes["Wil"],
+                'system.attributes.charismainitial': newAttributes["Cha"],
+                'system.attributes.dexterityvalue': newAttributes["Dex"],
+                'system.attributes.strengthvalue': newAttributes["Str"],
+                'system.attributes.toughnessvalue': newAttributes["Tou"],
+                'system.attributes.perceptionvalue': newAttributes["Per"],
+                'system.attributes.willpowervalue': newAttributes["Wil"],
+                'system.attributes.charismavalue': newAttributes["Cha"],
+                'system.unspentattributepoints': unspentPoints
             });
 
             return;
@@ -283,7 +285,7 @@ class Steps2Foundry {
             await this.actor.createEmbeddedDocuments("Item", talents.concat(skills, spells, equipment, threadItems));
 
             console.debug("Steps2Foundry | Updating Actor Data")
-            await this.actor.update({data: updateData});
+            await this.actor.update({system: updateData});
 
             console.debug("Steps2Foundry | Creating base attributes");
 
@@ -358,14 +360,14 @@ class Steps2Foundry {
                 // set item type specific data
                 switch (compType) {
                     case "Talents":
-                        compItem.data.ranks = itemEntry.Rank;
-                        compItem.data.source = itemEntry.Type === "Optional" ? "Option" : itemEntry.Type;
+                        compItem.system.ranks = itemEntry.Rank;
+                        compItem.system.source = itemEntry.Type === "Optional" ? "Option" : itemEntry.Type;
                         break;
                     case "Skills":
-                        compItem.data.ranks = itemEntry.Rank;
+                        compItem.system.ranks = itemEntry.Rank;
                         break;
                     case "Equipment":
-                        compItem.data.amount = itemEntry.Count;
+                        compItem.system.amount = itemEntry.Count;
                 }
 
                 // put it in the items that are returned
@@ -544,19 +546,21 @@ Hooks.on("init", function () {
     console.log("###############\n\nSecond Step Import for ED4:\n\tWe're on!\n\n###############");
 })
 
+/*
 Hooks.on("ready", function () {
     console.debug("Steps2Foundry | In Hook: ready");
     createImportButton()
 })
 
-/*
 Hooks.on("changeSidebarTab", function () {
     console.debug("Steps2Foundry | In Hook: changeSidebarTab");
     createImportButton()
 })
-
-Hooks.on("renderSidebarTab", function () {
-    console.debug("Steps2Foundry | In Hook: renderSidebarTab");
-    createImportButton()
-})
 */
+
+Hooks.on("renderSidebarTab", async (app, html) => {
+    if (app.options.id === 'actors') {
+        console.debug("Steps2Foundry | In Hook: renderSidebarTab");
+        createImportButton()
+    }
+})
