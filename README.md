@@ -5,6 +5,8 @@ A Foundry VTT module to import characters created with [SecondStep](www.secondst
 ## Requirements
 The module currently is built to only work with the [Earthdawn 4th Edition Player's Guide](https://foundryvtt.com/packages/earthdawn-pg-compendium) and the [Earthdawn 4th Edition Gamemaster's Guide](https://foundryvtt.com/packages/earthdawn-gm-compendium) (for Thread Items) which have to be activated in your game. This is because it contains all talents/skills/disciplines/namegivers/equipment/thread items and to avoid licensing issues.
 
+It is tested with Second Step: _Stable version (1β11.1)_
+
 
 ## How to Use
 1. After installing and activating the module in your game, you should see a button ("Import 2ndStep") in the Actors Directory of your sidebar. 
@@ -40,4 +42,4 @@ _(yes, I promise I will change the background color some day)_
 ## Other stuff
 I hope this helps, and don't hesitate to contact me with questions.
 
-**I love you all**
+**You are great**
