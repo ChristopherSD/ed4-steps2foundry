@@ -561,7 +561,7 @@ Hooks.on("changeSidebarTab", function () {
 */
 
 Hooks.on("renderSidebarTab", async (app, html) => {
-    if (app.options.id === 'actors') {
+    if (app.options.classes.includes("actors-sidebar")) {
         console.debug("Steps2Foundry | In Hook: renderSidebarTab");
         createImportButton(html)
     }
