@@ -2,7 +2,7 @@
   "name": "ed4-steps2foundry",
   "title": "Steps2Foundry - An Earthdawn character importer",
   "description": "A module to import characters created with SecondStep (secondstep.dk) into the Earthdawn game system.",
-  "version": "This is auto replaced",
+  "version": "#{VERSION}#",
   "library": "false",
   "manifestPlusVersion": "1.0.0",
   "authors": [
@@ -62,7 +62,7 @@
       "path": "lang/de.json"
     }
   ],
-  "url": "This is auto replaced",
-  "manifest": "This is auto replaced",
-  "download": "This is auto replaced"
+  "url": "#{URL}#",
+  "manifest": "#{MANIFEST}#",
+  "download": "#{DOWNLOAD}#"
 }
